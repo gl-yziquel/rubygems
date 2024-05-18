@@ -82,10 +82,9 @@ module Bundler
 
     def update_and_parse_checksums!
       Bundler::CompactIndexClient.debug { "update_and_parse_checksums!" }
-      return @info_checksums_by_name if @parsed_checksums
+      return if @parsed_checksums
       update("versions", @cache.versions_path, @cache.versions_etag_path)
-      @info_checksums_by_name = @cache.checksums
-      @parsed_checksums = true
+      @parsed_checksums = !@cache.info_checksum_for("bundler").nil?
     end
 
     private
@@ -102,7 +101,7 @@ module Bundler
     def update_info(name)
       Bundler::CompactIndexClient.debug { "update_info(#{name})" }
       path = @cache.info_path(name)
-      unless existing = @info_checksums_by_name[name]
+      unless existing = @cache.info_checksum_for(name)
         Bundler::CompactIndexClient.debug { "skipping updating info for #{name} since it is missing from versions" }
         return
       end

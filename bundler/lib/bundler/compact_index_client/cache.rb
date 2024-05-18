@@ -54,15 +54,14 @@ module Bundler
         directory.join("versions.etag")
       end
 
-      def checksums
-        checksums = {}
+      def info_checksum_for(name)
+        @version_data ||= versions_path.read.freeze
 
-        lines(versions_path).each do |line|
-          name, _, checksum = line.split(" ", 3)
-          checksums[name] = checksum
-        end
+        line_start = @version_data.rindex("\n#{name} ")
+        return if line_start.nil?
 
-        checksums
+        checksum_end = @version_data.index("\n", line_start + 1)
+        @version_data[checksum_end - 32, 32] # MD5 checksum is 32 characters long
       end
 
       def dependencies(name)
